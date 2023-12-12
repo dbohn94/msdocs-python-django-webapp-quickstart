@@ -26,12 +26,3 @@ def hello(request):
     else:
         return redirect('index')
 
-#algo_logic view
-# views.py
-from django.shortcuts import HttpResponse
-from .algorithm_logic import config
-
-def run_algorithm(request):
-    # Include the logic here or call a function from algorithm_logic.py
-    # Example: You might want to return a simple message
-    return HttpResponse("Algorithm is running.")
