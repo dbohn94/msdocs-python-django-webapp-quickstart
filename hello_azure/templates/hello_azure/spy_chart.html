@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>SPY Chart</title>
+    <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+    
+</head>
+<body>
+    <h1>SPY Chart</h1>
+
+    
+
+    <!-- Include the second chart -->
+    <div class="chart-container">
+        {{ chart2|safe }}
+    </div>
+    <div>{{ df_html|safe }}</div>
+    <div>{{ chart1|safe }}</div>
+    <!-- Include the first chart -->
+
+</body>
+</html>

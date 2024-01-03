@@ -1,2 +1,9 @@
 Django
 whitenoise
+pandas
+yfinance
+plotly
+numpy
+pytz
+pandas_market_calendars
+```
