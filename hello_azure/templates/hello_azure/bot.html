@@ -1,3 +1,5 @@
+{% load static %}
+
 <!DOCTYPE html>
 <html>
 <head>
@@ -5,6 +7,12 @@
 </head>
 <body>
     <h1>Bot Response:</h1>
-    <p>{{ response }}</p>
+    {% messages %}
+    <ul class="messages">
+        {% for message in messages %}
+        <li{% if message.tags %} class="{{ message.tags }}"{% endif %}>{{ message }}</li>
+        {% endfor %}
+    </ul>
+    {% endmessages %}
 </body>
 </html>

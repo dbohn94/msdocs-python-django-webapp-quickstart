@@ -1,6 +1,7 @@
 from django.shortcuts import render, redirect, HttpResponse
 from django.http import HttpResponse
 from django.views.decorators.csrf import csrf_exempt
+from django.contrib import messages
 import yfinance as yf
 from django.http import FileResponse
 from io import BytesIO
@@ -26,10 +27,11 @@ def index(request):
     return render(request, 'hello_azure/index.html')
 
 
-def bot_logic():
+def bot_logic(request):
         config = json.loads(open("hello_azure/config.json").read())
         data = helpers.get_historical_price(config["Stock"],config["Key"],config["Secret"])
         response = ""
+        messages.info(request,'Bot logic started')
         #open_positions = helpers.get_open_position(config["Key"],config["Secret"],config["Stock"]).symbol
         #print(f"Open positions: {open_positions}")
 
@@ -46,7 +48,7 @@ def bot_logic():
                     print(order)
                 else:
                     print(F"No Crossover yet, Current SMA {config['SMA_1']}: {sma1}, SMA {config['SMA_2']}: {sma2}")
-                
+                    break
                 curr_price = helpers.get_price(config["Key"],config["Secret"],config["Stock"])
                 data.loc[len(data)] = [0,0,0,curr_price,0,0,0,0,0]
         else:
@@ -57,9 +59,8 @@ def bot_logic():
             time.sleep(300)
         return response
 
-
 def bot(request):
-    response = bot_logic() # Run the bot_logic function
+    response = bot_logic(request) # Run the bot_logic function
     return render(request, 'hello_azure/bot.html', {'response': response})  # Pass the result to the template
 
 
