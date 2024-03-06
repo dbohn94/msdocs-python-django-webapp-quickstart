@@ -57,7 +57,7 @@ def bot_logic(request):
                 f"| qty= "
                 f"{helpers.get_open_position(config['Key'],config['Secret'],config["Stock"]).qty} ")) 
             time.sleep(300)
-        return response
+        return response, render(request, 'hello_azure/bot.html', {'response': response})
 
 def bot(request):
     response = bot_logic(request) # Run the bot_logic function
