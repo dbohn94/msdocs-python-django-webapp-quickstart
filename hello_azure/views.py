@@ -53,9 +53,9 @@ def bot_logic(request):
                 data.loc[len(data)] = [0,0,0,curr_price,0,0,0,0,0]
         else:
             print((f"Already have an open position in: "
-                f"{helpers.get_open_position(config['Key'],config['Secret'],config["Stock"]).symbol} "
+                f"{helpers.get_open_position(config['Key'],config['Secret'],config['Stock']).symbol} "
                 f"| qty= "
-                f"{helpers.get_open_position(config['Key'],config['Secret'],config["Stock"]).qty} ")) 
+                f"{helpers.get_open_position(config['Key'],config['Secret'],config['Stock']).qty} ")) 
             time.sleep(300)
         return response, render(request, 'hello_azure/bot.html', {'response': response})
 
