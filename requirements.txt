@@ -6,3 +6,4 @@ plotly
 numpy
 pytz
 pandas_market_calendars
+alpaca-trade-api

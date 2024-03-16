@@ -27,37 +27,37 @@ def index(request):
     return render(request, 'hello_azure/index.html')
 
 
+#@background_task(schedule=60)
 def bot_logic(request):
-        config = json.loads(open("hello_azure/config.json").read())
-        data = helpers.get_historical_price(config["Stock"],config["Key"],config["Secret"])
-        response = ""
-        messages.info(request,'Bot logic started')
-        #open_positions = helpers.get_open_position(config["Key"],config["Secret"],config["Stock"]).symbol
-        #print(f"Open positions: {open_positions}")
+    config = json.loads(open("hello_azure/config.json").read())
+    data = helpers.get_historical_price(config["Stock"],config["Key"],config["Secret"])
+    response = ""
+    messages.info(request,'Bot logic started')
+    #open_positions = helpers.get_open_position(config["Key"],config["Secret"],config["Stock"]).symbol
+    #print(f"Open positions: {open_positions}")
 
-        if config["Stock"] not in helpers.get_open_position(config["Key"],config["Secret"],config["Stock"]).symbol:
-            while True:
-                sma1 = helpers.calculate_sma(data, config["SMA_1"])
-                sma2 = helpers.calculate_sma(data, config["SMA_2"])
-                
-                if sma1 > sma2:
-                    order = helpers.place_market_order(config["Key"],config["Secret"],config["Stock"], config["Qty"], OrderSide.BUY)
-                    print(order)
-                elif sma2 > sma1:
-                    order = helpers.place_market_order(config["Key"],config["Secret"],config["Stock"], config["Qty"], OrderSide.SELL)
-                    print(order)
-                else:
-                    print(F"No Crossover yet, Current SMA {config['SMA_1']}: {sma1}, SMA {config['SMA_2']}: {sma2}")
-                    break
-                curr_price = helpers.get_price(config["Key"],config["Secret"],config["Stock"])
-                data.loc[len(data)] = [0,0,0,curr_price,0,0,0,0,0]
+    if config["Stock"] not in helpers.get_open_position(config["Key"],config["Secret"],config["Stock"]).symbol:
+        sma1 = helpers.calculate_sma(data, config["SMA_1"])
+        sma2 = helpers.calculate_sma(data, config["SMA_2"])
+        
+        if sma1 > sma2:
+            order = helpers.place_market_order(config["Key"],config["Secret"],config["Stock"], config["Qty"], OrderSide.BUY)
+            print(order)
+        elif sma2 > sma1:
+            order = helpers.place_market_order(config["Key"],config["Secret"],config["Stock"], config["Qty"], OrderSide.SELL)
+            print(order)
         else:
-            print((f"Already have an open position in: "
-                f"{helpers.get_open_position(config['Key'],config['Secret'],config['Stock']).symbol} "
-                f"| qty= "
-                f"{helpers.get_open_position(config['Key'],config['Secret'],config['Stock']).qty} ")) 
-            time.sleep(300)
-        return response, render(request, 'hello_azure/bot.html', {'response': response})
+            print(F"No Crossover yet, Current SMA {config['SMA_1']}: {sma1}, SMA {config['SMA_2']}: {sma2}")
+
+        curr_price = helpers.get_price(config["Key"],config["Secret"],config["Stock"])
+        data.loc[len(data)] = [0,0,0,curr_price,0,0,0,0,0]
+    else:
+        print((f"Already have an open position in: "
+            f"{helpers.get_open_position(config['Key'],config['Secret'],config['Stock']).symbol} "
+            f"| qty= "
+            f"{helpers.get_open_position(config['Key'],config['Secret'],config['Stock']).qty} ")) 
+
+    return response, render(request, 'hello_azure/bot.html', {'response': response})
 
 def bot(request):
     response = bot_logic(request) # Run the bot_logic function
@@ -80,6 +80,11 @@ def hello(request):
             return render(request, 'hello_azure/hello.html', context)
     else:
         return redirect('index')
+
+
+#def spy_chart_api(..):
+#    return latest_data
+
 
 #spy_chart view: URL Endpoint spy_chart, HTTP method (GET by default)
 def spy_chart(request):
