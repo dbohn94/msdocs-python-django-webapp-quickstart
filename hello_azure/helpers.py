@@ -100,6 +100,20 @@ def get_open_position(key, secret, symbol):
     return position
 
 
+def is_market_open(key, secret):
+    trading_client = TradingClient(key, secret, paper=True)
+    calendar = trading_client.get_calendar()
+    now = datetime.now()
+    for session in calendar.sessions:
+        if session.start <= now() <= session.end:
+            return True
+    return False
+
+def get_account(key, secret):
+    trading_client = TradingClient(key, secret, paper=True)
+    account = trading_client.get_account()
+    return account
+
 # Function to write log file
 def write_log(log):
     """

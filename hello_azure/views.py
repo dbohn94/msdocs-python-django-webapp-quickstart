@@ -18,6 +18,11 @@ import json
 from hello_azure import helpers
 from alpaca.trading.enums import OrderSide
 import time
+from background_task import background
+from lightweight_charts import Chart
+import pandas_ta as ta
+from datetime import datetime, timedelta
+
 
 #Index view: URL Endpoint index, HTTP method (GET by default)
 #Behavior: prints a message to the console indicating that a request for the index page has been recieved and then renders an HTML template named 'hello_azure/index.html' using the render function.
@@ -27,24 +32,31 @@ def index(request):
     return render(request, 'hello_azure/index.html')
 
 
-#@background_task(schedule=60)
+#@background(schedule=60)
 def bot_logic(request):
     config = json.loads(open("hello_azure/config.json").read())
     data = helpers.get_historical_price(config["Stock"],config["Key"],config["Secret"])
     response = ""
     messages.info(request,'Bot logic started')
-    #open_positions = helpers.get_open_position(config["Key"],config["Secret"],config["Stock"]).symbol
-    #print(f"Open positions: {open_positions}")
+    print("Bot logic started")
+    market_open = helpers.is_market_open(config["Key"],config["Secret"])
 
+    #if Stock does not have an open position, then check account balance, size trade, check for crossover and place order
     if config["Stock"] not in helpers.get_open_position(config["Key"],config["Secret"],config["Stock"]).symbol:
+        cash_balance = helpers.get_account(config["Key"],config["Secret"]).cash
+        cash_position_size = (cash_balance * config["Trade_Size"]) 
+        stock_price = helpers.get_price(config["Key"],config["Secret"],config["Stock"])
+        shares_to_buy = cash_position_size / stock_price
+        shares_to_sell = helpers.get_open_position(config["Key"],config["Secret"],config["Stock"]).qty_available
+
         sma1 = helpers.calculate_sma(data, config["SMA_1"])
         sma2 = helpers.calculate_sma(data, config["SMA_2"])
         
         if sma1 > sma2:
-            order = helpers.place_market_order(config["Key"],config["Secret"],config["Stock"], config["Qty"], OrderSide.BUY)
+            order = helpers.place_market_order(config["Key"],config["Secret"],config["Stock"], shares_to_buy, OrderSide.BUY)
             print(order)
         elif sma2 > sma1:
-            order = helpers.place_market_order(config["Key"],config["Secret"],config["Stock"], config["Qty"], OrderSide.SELL)
+            order = helpers.place_market_order(config["Key"],config["Secret"],config["Stock"], shares_to_sell, OrderSide.SELL)
             print(order)
         else:
             print(F"No Crossover yet, Current SMA {config['SMA_1']}: {sma1}, SMA {config['SMA_2']}: {sma2}")
@@ -81,9 +93,6 @@ def hello(request):
     else:
         return redirect('index')
 
-
-#def spy_chart_api(..):
-#    return latest_data
 
 
 #spy_chart view: URL Endpoint spy_chart, HTTP method (GET by default)
@@ -140,12 +149,9 @@ def spy_chart(request):
                     high=df['High'],
                     low=df['Low'],
                     close=df['Close']))
-    
-
     # Add SMA to the chart
     fig2.add_trace(go.Scatter(x=df.index, y=df['SMA_10'], mode='lines', name='SMA 10'))
     fig2.add_trace(go.Scatter(x=df.index, y=df['SMA_50'], mode='lines', name='SMA 50'))
-
     fig2.update_layout(
     autosize=False,
     width=1200,  # Adjust the width of the chart
@@ -161,6 +167,30 @@ def spy_chart(request):
         size=12,
     )
 )
+    # Fetch the last 72 hours of SPY data with 30-minute bars
+    chart = Chart()
+    now = datetime.now()
+    start_date = now - timedelta(hours=72)
+    spy = yf.Ticker("SPY")
+    data = yf.download('SPY', start=start_date, interval='30m')
+    data['sma_10'] = data['Close'].rolling(window=10).mean()
+    data['sma_50'] = data['Close'].rolling(window=50).mean()
+    print(data)
+    # this library expects lowercase columns for date, open, high, low, close, volume
+    data = data.reset_index()
+    data.columns = data.columns.str.lower()
+    print(data)
+    data['datetime'] = pd.to_datetime(data['datetime'])
+    print(data)
+    data['datetime'] = data['datetime'].apply(lambda x: x.strftime('%Y-%m-%d %H:%M:%S'))
+    chart_data = chart.set(data)
+    #chart_data = data[['datetime','close', 'sma_10', 'sma_50']].reset_index().to_dict(orient='records')
+
+    # Pass the chart data to your template
+    context = {
+        'chart_data': chart_data,
+    }
+
     # Convert the first chart to HTML
     chart1 = plot(fig, output_type='div')
     # Convert the second chart to HTML
@@ -168,4 +198,4 @@ def spy_chart(request):
     # Convert the DataFrame to HTML
     df_html = df.head(100).to_html()
 
-    return render(request, 'hello_azure/spy_chart.html', {'chart1':chart1, 'chart2': chart2, 'df_html':df_html}) 
+    return render(request, 'hello_azure/spy_chart.html', {'context':context, 'chart1':chart1, 'chart2': chart2, 'df_html':df_html}) 
