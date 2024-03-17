@@ -7,6 +7,6 @@ numpy
 pytz
 pandas_market_calendars
 alpaca-trade-api
-background_task
+#background_task
 pandas_ta 
 lightweight-charts
