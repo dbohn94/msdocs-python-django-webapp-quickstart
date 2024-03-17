@@ -18,7 +18,7 @@ import json
 from hello_azure import helpers
 from alpaca.trading.enums import OrderSide
 import time
-from background_task import background
+#from background_task import background
 from lightweight_charts import Chart
 import pandas_ta as ta
 from datetime import datetime, timedelta
