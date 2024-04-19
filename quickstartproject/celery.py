@@ -5,7 +5,10 @@ from celery import Celery
 # Set the default Django settings module for the 'celery' program.
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'quickstartproject.settings')
 
-app = Celery('quickstartproject')
+app = Celery(
+    'quickstartproject',
+    broker_url=os.environ.get("CELERY_BROKER_URL"),
+)
 
 # Using a string here means the worker doesn't have to serialize
 # the configuration object to child processes.

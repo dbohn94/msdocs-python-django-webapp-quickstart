@@ -11,4 +11,6 @@ Celery
 pandas_ta 
 lightweight-charts
 django-celery-beat
-eventlet # Needed for Windows
+eventlet # Needed for Celery on Windows
+azure-servicebus
+azure-identity

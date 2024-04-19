@@ -1,4 +1,3 @@
-
 # To start Celery
 
 celery -A quickstartproject worker -l INFO -P eventlet
