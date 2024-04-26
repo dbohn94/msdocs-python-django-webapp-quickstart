@@ -14,3 +14,4 @@ django-celery-beat
 eventlet # Needed for Celery on Windows
 azure-servicebus
 azure-identity
+psycopg2
