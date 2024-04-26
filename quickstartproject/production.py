@@ -5,7 +5,7 @@ import os
 # that Azure automatically creates for us.
 ALLOWED_HOSTS = [os.environ['APPLICATION_DOMAIN']] if 'APPLICATION_DOMAIN' in os.environ else []
 
-CSRF_TRUSTED_ORIGINS = [os.environ['APPLICATION_DOMAIN']] if 'APPLICATION_DOMAIN' in os.environ else []
+CSRF_TRUSTED_ORIGINS = [f"https://{os.environ['APPLICATION_DOMAIN']}"] if 'APPLICATION_DOMAIN' in os.environ else []
 
 DEBUG = False
 
