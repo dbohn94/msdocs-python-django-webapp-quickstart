@@ -4,28 +4,66 @@
     <title>SPY Chart</title>
     <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
     <script src="https://unpkg.com/lightweight-charts/dist/lightweight-charts.standalone.production.js"></script>
+    <style>
+      html, body {
+        width: 100%;
+        height: 100%;
+      }
+
+      .dataframe {
+        width: 90%;
+      }
+    </style>
 </head>
 <body>
-    <div id="chart" style="width: 100%; height: 100%;"></div>
+    <h1>SPY Chart</h1>
+    <div id="chart" style="width: 90%; height: 400px"></div>
     <script>
-        var chart = LightweightCharts.createChart(document.getElementById('chart'), { width: 1000, height: 500 });
-        var lineSeries = chart.addLineSeries();
-        var sma10Series = chart.addLineSeries({ color: 'blue' });
-        var sma50Series = chart.addLineSeries({ color: 'red' });
+        // var chart = LightweightCharts.createChart(document.getElementById('chart'), { width: 1000, height: 500 });
+        // var lineSeries = chart.addLineSeries();
+        // var sma10Series = chart.addLineSeries({ color: 'blue' });
+        // var sma50Series = chart.addLineSeries({ color: 'red' });
 
-        lineSeries.setData( chart_data|safe );
-        sma10Series.setData( chart_data|safe );
-        sma50Series.setData( chart_data|safe );
+        // lineSeries.setData( {{ chart_data|safe }} );
+        // sma10Series.setData( {{ chart_data|safe }} );
+        // sma50Series.setData( {{ chart_data|safe }} );
+
+        const chartOptions = { layout: { textColor: 'black', background: { type: 'solid', color: 'white' } } };
+        const chart = LightweightCharts.createChart(document.getElementById('chart'), chartOptions);
+
+        // const candlestickData = [{ open: 10, high: 10.63, low: 9.49, close: 9.55, time: 1642427876 }, { open: 9.55, high: 10.30, low: 9.42, close: 9.94, time: 1642514276 }, { open: 9.94, high: 10.17, low: 9.92, close: 9.78, time: 1642600676 }, { open: 9.78, high: 10.59, low: 9.18, close: 9.51, time: 1642687076 }, { open: 9.51, high: 10.46, low: 9.10, close: 10.17, time: 1642773476 }, { open: 10.17, high: 10.96, low: 10.16, close: 10.47, time: 1642859876 }, { open: 10.47, high: 11.39, low: 10.40, close: 10.81, time: 1642946276 }, { open: 10.81, high: 11.60, low: 10.30, close: 10.75, time: 1643032676 }, { open: 10.75, high: 11.60, low: 10.49, close: 10.93, time: 1643119076 }, { open: 10.93, high: 11.53, low: 10.76, close: 10.96, time: 1643205476 }];
+        const candlestickData = {{ candlestick_data|safe }};
+        const candlestickSeries = chart.addCandlestickSeries({
+          upColor: '#26a69a',
+          downColor: '#ef5350',
+          borderVisible: false,
+          wickUpColor: '#26a69a',
+          wickDownColor: '#ef5350'
+        });
+        candlestickSeries.setData(candlestickData);
+
+        const sma10Data = {{ sma10_data|safe }};
+        const sma10Series = chart.addLineSeries({ color: 'blue' });
+        sma10Series.setData(sma10Data);
+      
+        const sma50Data = {{ sma50_data|safe }};
+        const sma50Series = chart.addLineSeries({ color: 'red' });
+        sma50Series.setData(sma50Data);
+
+        chart.timeScale().fitContent();
+        chart.timeScale().applyOptions({ timeVisible: true });
+
     </script>
 
-    <h1>SPY Chart</h1>
-
-    <!-- Include the second chart -->
-    <div class="chart-container">
-        {{ chart2|safe }}
-    </div>
+    <h1>Data</h1>
     <div>{{ df_html|safe }}</div>
-    <div>{{ chart1|safe }}</div>
+
+    <!-- <h1>Old chart</h1> -->
+    <!-- Include the second chart -->
+    <!-- <div class="chart-container"> -->
+    <!--     {{ chart2|safe }} -->
+    <!-- </div> -->
+    <!-- <div>{{ chart1|safe }}</div> -->
     <!-- Include the first chart -->
 
 </body>

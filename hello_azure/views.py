@@ -113,43 +113,41 @@ def spy_chart(request):
     fig2.add_trace(go.Scatter(x=df.index, y=df['SMA_10'], mode='lines', name='SMA 10'))
     fig2.add_trace(go.Scatter(x=df.index, y=df['SMA_50'], mode='lines', name='SMA 50'))
     fig2.update_layout(
-    autosize=False,
-    width=1200,  # Adjust the width of the chart
-    height=1000,  # Adjust the height of the chart
-    margin=dict(
-        l=50,  # left margin
-        r=50,  # right margin
-        b=100,  # bottom margin
-        t=100,  # top margin
-        pad=10
-    ),
-    font=dict(
-        size=12,
+        autosize=False,
+        width=1200,  # Adjust the width of the chart
+        height=1000,  # Adjust the height of the chart
+        margin=dict(
+            l=50,  # left margin
+            r=50,  # right margin
+            b=100,  # bottom margin
+            t=100,  # top margin
+            pad=10
+        ),
+        font=dict(
+            size=12,
+        )
     )
-)
     # Fetch the last 72 hours of SPY data with 30-minute bars
-    chart = Chart()
+    #chart = Chart()
     now = datetime.now()
-    start_date = now - timedelta(hours=72)
+    start_date = now - timedelta(hours=24*7)
     spy = yf.Ticker("SPY")
     data = yf.download('SPY', start=start_date, interval='30m')
-    data['sma_10'] = data['Close'].rolling(window=10).mean()
-    data['sma_50'] = data['Close'].rolling(window=50).mean()
-    print(data)
+    data['sma_10'] = data['Close'].dropna().rolling(window=10, min_periods=1).mean()
+    data['sma_50'] = data['Close'].dropna().rolling(window=50, min_periods=1).mean()
     # this library expects lowercase columns for date, open, high, low, close, volume
     data = data.reset_index()
     data.columns = data.columns.str.lower()
-    print(data)
-    data['datetime'] = pd.to_datetime(data['datetime'])
-    print(data)
-    data['datetime'] = data['datetime'].apply(lambda x: x.strftime('%Y-%m-%d %H:%M:%S'))
-    chart_data = chart.set(data)
+    data['time'] = data['datetime'].map(lambda x: int(round(x.timestamp())))
+    #data['datetime'] = data['datetime'].apply(lambda x: x.strftime('%Y-%m-%d %H:%M:%S'))
+    #chart_data = chart.set(data)
     #chart_data = data[['datetime','close', 'sma_10', 'sma_50']].reset_index().to_dict(orient='records')
 
-    # Pass the chart data to your template
-    context = {
-        'chart_data': chart_data,
-    }
+    print(data)
+
+    candlestick_data = data[['time', 'open', 'high', 'low', 'close']].reset_index().to_dict(orient='records')
+    sma10_data = data.rename(columns={"sma_10": "value"})[['time', 'value']].reset_index().to_dict(orient='records')
+    sma50_data = data.rename(columns={"sma_50": "value"})[['time', 'value']].reset_index().to_dict(orient='records')
 
     # Convert the first chart to HTML
     chart1 = plot(fig, output_type='div')
@@ -158,4 +156,11 @@ def spy_chart(request):
     # Convert the DataFrame to HTML
     df_html = df.head(100).to_html()
 
-    return render(request, 'hello_azure/spy_chart.html', {'context':context, 'chart1':chart1, 'chart2': chart2, 'df_html':df_html}) 
+    return render(request, 'hello_azure/spy_chart.html', {
+        'candlestick_data': json.dumps(candlestick_data),
+        'sma10_data': json.dumps(sma10_data),
+        'sma50_data': json.dumps(sma50_data),
+        'df_html': df_html,
+        'chart1': chart1,
+        'chart2': chart2,
+    })
