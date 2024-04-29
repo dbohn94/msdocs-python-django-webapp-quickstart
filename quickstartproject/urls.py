@@ -19,5 +19,4 @@ from django.urls import include, path
 urlpatterns = [
     path('', include('hello_azure.urls')),
     path('admin/', admin.site.urls),
-    #path('spy_chart/', views.spy_chart, name='spy_chart'),
 ]
