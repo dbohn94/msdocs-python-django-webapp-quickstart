@@ -35,6 +35,10 @@
           margin-top: 20px;
       }
 
+      .highlight {
+          background-color: #e3e3e3;
+      }
+
       .dataframe {
         width: 90%;
       }
@@ -157,6 +161,20 @@
         chart.timeScale().applyOptions({ timeVisible: true });
 
     </script>
+
+    <h2>Decisions (past 48 hours)</h2>
+    {% for decision in decisions %}
+    <div {% if decision.decision != 'DO_NOTHING' %}class="highlight roboto-regular"{% endif %}>[{{ decision.stock }}] {{ decision.timestamp }} {{ decision.get_decision_display }} ({{ decision.get_reason_display }})</div>
+    {% empty %}
+    <div>No decisions found</div>
+    {% endfor %}
+
+    <h2>Trades</h2>
+    {% for trade in trades %}
+    <div>[{{ trade.stock }}] {{ trade.timestamp }} {{ trade.get_action_display }}</div>
+    {% empty %}
+    <div>No trades found</div>
+    {% endfor %}
 
     <h2>Data</h2>
     <div>{{ df_html|safe }}</div>

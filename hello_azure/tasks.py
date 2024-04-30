@@ -6,6 +6,7 @@ from celery import shared_task
 from celery.utils.log import get_task_logger
 
 from . import helpers
+from .models import DecisionLog, TradeLog
 
 
 logger = get_task_logger(__name__)
@@ -17,6 +18,14 @@ def bot_logic():
     data = helpers.get_historical_price(config["Stock"],config["Key"],config["Secret"])
     print("Bot logic started")
     market_open = helpers.is_market_open(config["Key"],config["Secret"])
+    if not market_open:
+        print("Market isn't open, nothing to do")
+        DecisionLog.objects.create(
+            stock=config["Stock"],
+            decision=DecisionLog.Decision.DO_NOTHING,
+            reason=DecisionLog.Reason.MARKET_CLOSED,
+        )
+        return
 
     #if Stock does not have an open position, then check account balance, size trade, check for crossover and place order
     position = helpers.get_open_position(config["Key"],config["Secret"],config["Stock"])
@@ -33,11 +42,34 @@ def bot_logic():
         if sma1 > sma2:
             order = helpers.place_market_order(config["Key"],config["Secret"],config["Stock"], shares_to_buy, OrderSide.BUY)
             print(order)
+            DecisionLog.objects.create(
+                stock=config["Stock"],
+                decision=DecisionLog.Decision.BUY,
+                reason=DecisionLog.Reason.SMA1_GT_SMA2,
+            )
+            TradeLog.objects.create(
+                stock=config["Stock"],
+                action=TradeLog.Action.BUY,
+            )
         elif sma2 > sma1:
             order = helpers.place_market_order(config["Key"],config["Secret"],config["Stock"], shares_to_sell, OrderSide.SELL)
             print(order)
+            DecisionLog.objects.create(
+                stock=config["Stock"],
+                decision=DecisionLog.Decision.BUY,
+                reason=DecisionLog.Reason.SMA2_GT_SMA1,
+            )
+            TradeLog.objects.create(
+                stock=config["Stock"],
+                action=TradeLog.Action.SELL,
+            )
         else:
             print(F"No Crossover yet, Current SMA {config['SMA_1']}: {sma1}, SMA {config['SMA_2']}: {sma2}")
+            DecisionLog.objects.create(
+                stock=config["Stock"],
+                decision=DecisionLog.Decision.DO_NOTHING,
+                reason=DecisionLog.Reason.NO_CROSSOVER,
+            )
 
         curr_price = helpers.get_price(config["Key"],config["Secret"],config["Stock"])
         data.loc[len(data)] = [0,0,0,curr_price,0,0,0,0,0]
@@ -46,5 +78,10 @@ def bot_logic():
             f"{helpers.get_open_position(config['Key'],config['Secret'],config['Stock']).symbol} "
             f"| qty= "
             f"{helpers.get_open_position(config['Key'],config['Secret'],config['Stock']).qty} "))
+        DecisionLog.objects.create(
+            stock=config["Stock"],
+            decision=DecisionLog.Decision.DO_NOTHING,
+            reason=DecisionLog.Reason.ALREADY_OPEN,
+        )
 
     print("Bot logic finished")

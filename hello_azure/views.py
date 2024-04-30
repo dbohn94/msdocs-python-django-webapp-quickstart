@@ -22,6 +22,8 @@ from lightweight_charts import Chart
 import pandas_ta as ta
 from datetime import datetime, timedelta
 
+from .models import DecisionLog, TradeLog
+
 
 #Index view: URL Endpoint index, HTTP method (GET by default)
 #Behavior: prints a message to the console indicating that a request for the index page has been recieved and then renders an HTML template named 'hello_azure/index.html' using the render function.
@@ -129,7 +131,7 @@ def spy_chart(request):
     )
     # Fetch the last 72 hours of SPY data with 30-minute bars
     #chart = Chart()
-    now = datetime.now()
+    now = datetime.now(pytz.timezone('US/Eastern'))
     start_date = now - timedelta(hours=24*7)
     spy = yf.Ticker("SPY")
     data = yf.download('SPY', start=start_date, interval='30m')
@@ -156,10 +158,16 @@ def spy_chart(request):
     # Convert the DataFrame to HTML
     df_html = df.head(100).to_html()
 
+    decisions_cutoff = now - timedelta(hours=2)
+    decisions = DecisionLog.objects.filter(timestamp__gte=decisions_cutoff).order_by("-timestamp")
+    trades = TradeLog.objects.all().order_by("-timestamp")
+
     return render(request, 'hello_azure/spy_chart.html', {
         'candlestick_data': json.dumps(candlestick_data),
         'sma10_data': json.dumps(sma10_data),
         'sma50_data': json.dumps(sma50_data),
+        'decisions': decisions,
+        'trades': trades,
         'df_html': df_html,
         'chart1': chart1,
         'chart2': chart2,

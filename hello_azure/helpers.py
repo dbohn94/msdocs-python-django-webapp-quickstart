@@ -4,10 +4,9 @@ Name: Muhammad Moaz
 Email: mujahidmoaz@gmail.com
 """
 
-# Import Libraries
+import pytz
 from alpaca.common.exceptions import APIError
 from alpaca.data.requests import StockBarsRequest, StockLatestQuoteRequest
-
 from alpaca.trading.client import TradingClient
 from alpaca.data.historical import StockHistoricalDataClient
 from alpaca.trading.requests import MarketOrderRequest
@@ -28,7 +27,7 @@ def get_historical_price(stock, api, secret):
     client = StockHistoricalDataClient(
         api_key=api, secret_key=secret)
 
-    end = datetime.now()- timedelta(days=(1))
+    end = datetime.now(pytz.timezone('US/Eastern')) - timedelta(days=(1))
     start = end - timedelta(days=(90))
 
     # Creating request object
@@ -41,8 +40,6 @@ def get_historical_price(stock, api, secret):
 
     data = client.get_stock_bars(request_params)
 
-    # Convert to dataframe and save in csv
-    data.df.to_csv("hello_azure/history/{}.csv".format(stock))
     return data.df
 
 def get_price(api, secret, symbol):
@@ -107,13 +104,14 @@ def get_open_position(key, secret, symbol):
 
 
 def is_market_open(key, secret):
-    # trading_client = TradingClient(key, secret, paper=True)
-    # calendar = trading_client.get_calendar()
-    # now = datetime.now()
-    # for session in calendar.sessions:
-    #     if session.start <= now() <= session.end:
-    #         return True
+    trading_client = TradingClient(key, secret, paper=True)
+    calendar = trading_client.get_calendar()
+    now = datetime.now(pytz.timezone('US/Eastern'))
+    for session in calendar:
+        if session.open <= now <= session.close:
+            return True
     return False
+
 
 def get_account(key, secret):
     trading_client = TradingClient(key, secret, paper=True)
