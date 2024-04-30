@@ -1,4 +1,5 @@
 import json
+from decimal import Decimal
 
 from alpaca.trading.enums import OrderSide
 from celery import shared_task
@@ -18,12 +19,13 @@ def bot_logic():
     market_open = helpers.is_market_open(config["Key"],config["Secret"])
 
     #if Stock does not have an open position, then check account balance, size trade, check for crossover and place order
-    if config["Stock"] not in helpers.get_open_position(config["Key"],config["Secret"],config["Stock"]).symbol:
-        cash_balance = helpers.get_account(config["Key"],config["Secret"]).cash
-        cash_position_size = (cash_balance * config["Trade_Size"])
-        stock_price = helpers.get_price(config["Key"],config["Secret"],config["Stock"])
-        shares_to_buy = cash_position_size / stock_price
-        shares_to_sell = helpers.get_open_position(config["Key"],config["Secret"],config["Stock"]).qty_available
+    position = helpers.get_open_position(config["Key"],config["Secret"],config["Stock"])
+    if not position or config["Stock"] not in position.symbol:
+        cash_balance = Decimal(helpers.get_account(config["Key"],config["Secret"]).cash)
+        cash_position_size = (cash_balance * Decimal(config["Trade_Size"]))
+        stock_price = Decimal(helpers.get_price(config["Key"],config["Secret"],config["Stock"]))
+        shares_to_buy = int(cash_position_size / stock_price)
+        shares_to_sell = position.qty_available if position else shares_to_buy
 
         sma1 = helpers.calculate_sma(data, config["SMA_1"])
         sma2 = helpers.calculate_sma(data, config["SMA_2"])

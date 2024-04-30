@@ -5,7 +5,9 @@ Email: mujahidmoaz@gmail.com
 """
 
 # Import Libraries
+from alpaca.common.exceptions import APIError
 from alpaca.data.requests import StockBarsRequest, StockLatestQuoteRequest
+
 from alpaca.trading.client import TradingClient
 from alpaca.data.historical import StockHistoricalDataClient
 from alpaca.trading.requests import MarketOrderRequest
@@ -95,9 +97,13 @@ def place_market_order(key, secret, stock, qty, side):
 
 def get_open_position(key, secret, symbol):
     trading_client = TradingClient(key, secret, paper=True)
-    position = trading_client.get_open_position(symbol_or_asset_id=symbol)
 
-    return position
+    try:
+        position = trading_client.get_open_position(symbol_or_asset_id=symbol)
+        return position
+    except APIError:
+        # Throws an APIError if the position does not exist.
+        return None
 
 
 def is_market_open(key, secret):
