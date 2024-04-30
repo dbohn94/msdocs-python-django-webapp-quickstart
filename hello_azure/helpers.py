@@ -106,9 +106,10 @@ def get_open_position(key, secret, symbol):
 def is_market_open(key, secret):
     trading_client = TradingClient(key, secret, paper=True)
     calendar = trading_client.get_calendar()
-    now = datetime.now(pytz.timezone('US/Eastern'))
+    tz = pytz.timezone('US/Eastern')
+    now = datetime.now(tz)
     for session in calendar:
-        if session.open <= now <= session.close:
+        if tz.localize(session.open) <= now <= tz.localize(session.close):
             return True
     return False
 
