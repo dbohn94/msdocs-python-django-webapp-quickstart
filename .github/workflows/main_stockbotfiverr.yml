@@ -62,11 +62,16 @@ jobs:
         run: unzip release.zip
 
       
+      - name: Login to Azure
+        uses: azure/login@v1
+        with:
+          client-id: ${{ secrets.AZUREAPPSERVICE_CLIENTID_82CEC3E1FF174E6AB82855CC5B9E5720 }}
+          tenant-id: ${{ secrets.AZUREAPPSERVICE_TENANTID_C72E58E616ED4FDD807A7F1B2E89ACDD }}
+          subscription-id: ${{ secrets.AZUREAPPSERVICE_SUBSCRIPTIONID_8E86794AFFEE4416B3F38BBDBE0FA236 }}
+
       - name: 'Deploy to Azure Web App'
         uses: azure/webapps-deploy@v2
         id: deploy-to-webapp
         with:
           app-name: 'stockbotfiverr'
           slot-name: 'Production'
-          publish-profile: ${{ secrets.AZUREAPPSERVICE_PUBLISHPROFILE_630E7FDB596B4F31959E18960FD48404 }}
-          
