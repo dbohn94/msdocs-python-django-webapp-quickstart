@@ -1,6 +1,7 @@
 import os
 
 from celery import Celery
+from celery.schedules import crontab
 
 # Set the default Django settings module for the 'celery' program.
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'quickstartproject.settings')
@@ -22,7 +23,8 @@ app.autodiscover_tasks()
 app.conf.beat_schedule = {
     'bot-every-10-seconds': {
         'task': 'hello_azure.tasks.bot_logic',
-        'schedule': 10.0,
+        #'schedule': 300.0,
+        'schedule': crontab(minute='*/5', hour='14,15,16,17,18,19,20,21'),
         'args': ()
     },
 }
