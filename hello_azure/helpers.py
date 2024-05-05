@@ -42,6 +42,39 @@ def get_historical_price(stock, api, secret):
 
     return data.df
 
+def get_historical_price_30min(stock, api, secret):
+    """
+    Get 14 days historical price of a stock by the minute
+    Returns: data (DataFrame) -> Historical data 30 min
+    """
+    client = StockHistoricalDataClient(
+        api_key=api, secret_key=secret)
+
+    end = datetime.now(pytz.timezone('US/Eastern')) - timedelta(days=(1))
+    start = end - timedelta(days=(14))
+
+    # Creating request object
+    request_params = StockBarsRequest(
+        symbol_or_symbols=[stock],
+        timeframe=TimeFrame.Minute,
+        start=start,
+        end=end
+    )
+
+    bars = client.get_stock_bars(request_params)
+    
+    # Convert to dataframe
+    df = bars.df
+
+    # Remove after hours data
+    datac = df[(df.index.get_level_values(1).hour <=16)]
+    datad = datac[(datac.index.get_level_values(1).hour >=9)]
+    
+    # Get only :00 and :30 values
+    data30 = datad[(datad.index.get_level_values(1).minute == 0) | (datad.index.get_level_values(1).minute == 30)].copy()
+    
+    return data30
+
 def get_price(api, secret, symbol):
     """
     Get Latest price of a symbol
