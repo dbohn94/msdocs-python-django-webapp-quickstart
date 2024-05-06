@@ -170,8 +170,8 @@
     {% endfor %}
 
     <h2>Decisions Summary</h2>
-    {% for decision in decisions %}
-    <div {% if decision.decision != 'DO_NOTHING' %}class="highlight roboto-regular"{% endif %}>[{{ DecisionSummary.stock }}] {{ DecisionSummary.timestamp }} {{ DecisionSummary.decision }} ({{ DecisionSummary.reason }})</div>
+    {% for row in data %}
+      <p>{{ DecisionSummary.stock }} - {{ DecisionSummary.timestamp }} - {{ DecisionSummary.decision }} - {{ DecisionSummary.reason }}</p>
     {% empty %}
     <div>No decisions found</div>
     {% endfor %}
