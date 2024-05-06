@@ -22,7 +22,7 @@ from lightweight_charts import Chart
 import pandas_ta as ta
 from datetime import datetime, timedelta
 
-from .models import DecisionLog, TradeLog
+from .models import DecisionLog, TradeLog, DecisionSummary
 
 
 #Index view: URL Endpoint index, HTTP method (GET by default)
@@ -84,6 +84,7 @@ def spy_chart(request):
 
     decisions_cutoff = now - timedelta(hours=2)
     decisions = DecisionLog.objects.filter(timestamp__gte=decisions_cutoff).order_by("-timestamp")
+    decisions2 = DecisionSummary.objects.all().order_by("-timestamp")
     trades = TradeLog.objects.all().order_by("-timestamp")
 
     return render(request, 'hello_azure/spy_chart.html', {
@@ -91,6 +92,7 @@ def spy_chart(request):
         'sma10_data': json.dumps(sma10_data),
         'sma50_data': json.dumps(sma50_data),
         'decisions': decisions,
+        'decisions2': decisions2,
         'trades': trades,
         'df_html': df_html
     })

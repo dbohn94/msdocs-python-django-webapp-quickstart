@@ -34,3 +34,15 @@ class TradeLog(models.Model):
     stock = models.CharField(max_length=10)
 
     action = models.CharField(choices=Action.choices, max_length=20)
+
+class DecisionSummary(models.Model):
+    # Define your fields here. The field names should match the column names of your view.
+    # For example:
+    timestamp = models.DateTimeField(auto_now_add=True)
+    stock = models.CharField(max_length=10)
+    decision = models.CharField(max_length=20)
+    reason = models.CharField(max_length=20)
+
+    class Meta:
+        managed = False
+        db_table = 'vw_decision_summary'  # replace with the name of your view
