@@ -33,6 +33,10 @@ def index(request):
     return render(request, 'hello_azure/index.html')
 
 
+def bot(request):
+    response = bot_logic(request) # Run the bot_logic function
+    return render(request, 'hello_azure/bot.html', {'response': response})  # Pass the result to the template
+
 @csrf_exempt
 def hello(request):
     if request.method == 'POST':
