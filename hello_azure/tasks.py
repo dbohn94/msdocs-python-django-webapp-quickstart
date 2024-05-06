@@ -7,7 +7,7 @@ from celery.utils.log import get_task_logger
 
 from . import helpers
 from .models import DecisionLog, TradeLog
-
+from quickstartproject.production import API_KEY, API_SECRET
 
 logger = get_task_logger(__name__)
 
@@ -15,9 +15,9 @@ logger = get_task_logger(__name__)
 @shared_task
 def bot_logic():
     config = json.loads(open("hello_azure/config.json").read())
-    data = helpers.get_historical_price(config["Stock"],config["Key"],config["Secret"])
+    data = helpers.get_historical_price(config["Stock"],API_KEY,API_SECRET)
     print("Bot logic started")
-    market_open = helpers.is_market_open(config["Key"],config["Secret"])
+    market_open = helpers.is_market_open(API_KEY,API_SECRET)
     if not market_open:
         print("Market isn't open, nothing to do")
         DecisionLog.objects.create(
@@ -28,11 +28,11 @@ def bot_logic():
         return
 
     #if Stock does not have an open position, then check account balance, size trade, check for crossover and place order
-    position = helpers.get_open_position(config["Key"],config["Secret"],config["Stock"])
+    position = helpers.get_open_position(API_KEY,API_SECRET,config["Stock"])
     if not position or config["Stock"] not in position.symbol:
-        cash_balance = Decimal(helpers.get_account(config["Key"],config["Secret"]).cash)
+        cash_balance = Decimal(helpers.get_account(API_KEY,API_SECRET).cash)
         cash_position_size = (cash_balance * Decimal(config["Trade_Size"]))
-        stock_price = Decimal(helpers.get_price(config["Key"],config["Secret"],config["Stock"]))
+        stock_price = Decimal(helpers.get_price(API_KEY,API_SECRET,config["Stock"]))
         shares_to_buy = int(cash_position_size / stock_price)
         shares_to_sell = position.qty_available if position else shares_to_buy
 
@@ -40,7 +40,7 @@ def bot_logic():
         sma2 = helpers.calculate_sma(data, config["SMA_2"])
 
         if sma1 > sma2:
-            order = helpers.place_market_order(config["Key"],config["Secret"],config["Stock"], shares_to_buy, OrderSide.BUY)
+            order = helpers.place_market_order(API_KEY,API_SECRET,config["Stock"], shares_to_buy, OrderSide.BUY)
             print(order)
             DecisionLog.objects.create(
                 stock=config["Stock"],
@@ -52,7 +52,7 @@ def bot_logic():
                 action=TradeLog.Action.BUY,
             )
         elif sma2 > sma1:
-            order = helpers.place_market_order(config["Key"],config["Secret"],config["Stock"], shares_to_sell, OrderSide.SELL)
+            order = helpers.place_market_order(API_KEY,API_SECRET,config["Stock"], shares_to_sell, OrderSide.SELL)
             print(order)
             DecisionLog.objects.create(
                 stock=config["Stock"],
@@ -71,13 +71,13 @@ def bot_logic():
                 reason=DecisionLog.Reason.NO_CROSSOVER,
             )
 
-        curr_price = helpers.get_price(config["Key"],config["Secret"],config["Stock"])
+        curr_price = helpers.get_price(API_KEY,API_SECRET,config["Stock"])
         data.loc[len(data)] = [0,0,0,curr_price,0,0,0,0,0]
     else:
         print((f"Already have an open position in: "
-            f"{helpers.get_open_position(config['Key'],config['Secret'],config['Stock']).symbol} "
+            f"{helpers.get_open_position(API_KEY,API_SECRET,config['Stock']).symbol} "
             f"| qty= "
-            f"{helpers.get_open_position(config['Key'],config['Secret'],config['Stock']).qty} "))
+            f"{helpers.get_open_position(API_KEY,API_SECRET,config['Stock']).qty} "))
         DecisionLog.objects.create(
             stock=config["Stock"],
             decision=DecisionLog.Decision.DO_NOTHING,

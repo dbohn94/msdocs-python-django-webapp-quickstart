@@ -1,8 +1,8 @@
 {
     "Stock": "SPY",
     "Qty": 5,
-    "Key": "PKMOX913L4WVZAKRC5PJ",
-    "Secret": "1CYnHejXz95zYfhAqvCGHnH0m1Y3whhRPUV2SkDZ",
+    "Key": "PKYVDCWNFRRGDM17Y888",
+    "Secret": "cAf3w25spCTPaQc1qMagxuKziVjeesDaqI1KLYva",
     "SMA_1": 10,
     "SMA_2": 50,
     "Trade_Size": ".1"
