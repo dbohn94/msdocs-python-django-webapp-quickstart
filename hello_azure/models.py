@@ -42,7 +42,3 @@ class DecisionSummary(models.Model):
     stock = models.CharField(max_length=10)
     decision = models.CharField(max_length=20)
     reason = models.CharField(max_length=20)
-
-    class Meta:
-        managed = False
-        db_table = 'vw_decision_summary'  # replace with the name of your view
